@@ -1,0 +1,20 @@
+{
+  "name": "weather-lambda",
+  "version": "1.0.0",
+  "description": "Simple lambda for getting weather from OpenWeather API",
+  "main": "handler.js",
+  "keywords": [
+    "aws",
+    "nodejs",
+    "telegram",
+    "chatbot",
+    "serverless"
+  ],
+  "dependencies": {
+    "axios": "^0.20.0",
+    "serverless-dotenv-plugin": "^3.0.0"
+  },
+  "devDependencies": {
+    "serverless-offline": "^6.8.0"
+  }
+}

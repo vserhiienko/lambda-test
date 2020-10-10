@@ -1,0 +1,78 @@
+org: stee1house
+service: excel
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: prod
+  memorySize: 512
+  timeout: 10
+  apiGateway:
+    binaryMediaTypes:
+      - '*/*'
+  environment:
+    DYNAMODB_TABLE: ${env:DYNAMODB_TABLE}
+    BUCKET: ${env:BUCKET}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:*
+      Resource:
+        - "arn:aws:s3:::${self:provider.environment.BUCKET}/*"
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+
+custom:
+  apigwBinary:
+    types:
+      - 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  bucket: ${env:BUCKET}
+
+functions:
+  saveToBD:
+    handler: saveToDBHandler.saveToDB
+    events:
+      - s3:
+          bucket: ${self:custom.bucket}
+          event: s3:ObjectCreated:*
+  saveToBucket:
+    handler: saveToBucketHandler.saveToBucket
+    events:
+      - http:
+          path: saveToBucket
+          method: post
+          request:
+            contentHandling: CONVERT_TO_BINARY
+          response:
+            contentHandling: CONVERT_TO_BINARY
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+  - serverless-apigw-binary
+
+resources:
+  Resources:
+    TodosDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}

@@ -1,0 +1,26 @@
+org: stee1house
+service: get-weather
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: prod
+  memorySize: 512
+  timeout: 30
+  variables:
+    OPENWEATHER_TOKEN: ${env:OPENWEATHER_TOKEN}
+  tracing:
+    lambda: true
+
+functions:
+  webhook:
+    handler: handler.getWeather
+    timeout: 30
+    events:
+      - http:
+          path: /
+          method: any
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin

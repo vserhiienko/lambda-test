@@ -1,0 +1,30 @@
+org: stee1house
+service: steelhouse-info-bot
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: prod
+  memorySize: 512
+  timeout: 10
+  variables:
+    TELEGRAM_TOKEN: ${env:TELEGRAM_TOKEN}
+    OPENWEATHER_TOKEN: ${env:OPENWEATHER_TOKEN}
+    PRODUCTION_SERVER: ${env:PRODUCTION_SERVER}
+    SENTRY_DNS: ${env:SENTRY_DNS}
+  tracing:
+    lambda: true
+
+functions:
+  webhook:
+    handler: handler.webhook
+    timeout: 10
+    events:
+      - http:
+          path: /
+          method: post
+          cors: true
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
